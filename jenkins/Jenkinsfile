@@ -1,0 +1,26 @@
+pipeline {
+  agent any
+
+  stages {
+
+    stage('Clone Repo') {
+      steps {
+        git 'https://github.com/yourrepo/ai-zombie-survival.git'
+      }
+    }
+
+    stage('Build Docker') {
+      steps {
+        sh 'docker build -t zombie-frontend -f docker/Dockerfile.frontend .'
+        sh 'docker build -t zombie-backend -f docker/Dockerfile.backend .'
+      }
+    }
+
+    stage('Run Containers') {
+      steps {
+        sh 'docker-compose up -d'
+      }
+    }
+  }
+}
+
