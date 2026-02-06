@@ -5,7 +5,8 @@ pipeline {
 
     stage('Clone Repo') {
       steps {
-        git 'https://github.com/yourrepo/ai-zombie-survival.git'
+        git 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
+
       }
     }
 
