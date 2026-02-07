@@ -1,23 +1,25 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('Clone') {
-      steps {
-        git branch: 'main', url: 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
-      }
-    }
+    stages {
 
-    stage('Build') {
-      steps {
-        sh 'docker compose -f docker/docker-compose.yml build --no-cache'
-      }
-    }
+        stage('Clone') {
+            steps {
+                git branch: 'main', url: 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
+            }
+        }
 
-    stage('Deploy') {
-      steps {
-        sh 'cd docker && docker compose up -d'
-      }
+        stage('Build') {
+            steps {
+                sh 'docker compose -f docker/docker-compose.yml build --no-cache'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker compose -f docker/docker-compose.yml up -d'
+            }
+        }
     }
-  }
 }
+
