@@ -1,6 +1,12 @@
 FROM node:18
+
 WORKDIR /app
+
+COPY ../backend/package.json .
+RUN npm install
+
 COPY ../backend .
-RUN npm install express cors
+
+EXPOSE 5000
 CMD ["node", "server.js"]
 
