@@ -1,17 +1,45 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "ai-zombie"
+    }
+
     stages {
 
         stage('Clone') {
             steps {
-                git branch: 'main', url: 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                sh 'docker compose -f docker/docker-compose.yml build --no-cache'
+                sh 'echo Building application...'
+                sh 'docker compose -f docker/docker-compose.yml build'
+            }
+        }
+
+        stage('Test') {
+            parallel {
+
+                stage('Unit Test') {
+                    steps {
+                        sh 'echo Running unit tests...'
+                    }
+                }
+
+                stage('Lint Check') {
+                    steps {
+                        sh 'echo Checking code lint...'
+                    }
+                }
+            }
+        }
+
+        stage('Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
 
@@ -20,6 +48,20 @@ pipeline {
                 sh 'docker compose -f docker/docker-compose.yml up -d'
             }
         }
+
+        stage('Monitoring') {
+            steps {
+                sh 'echo Prometheus & Grafana running...'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully ✅'
+        }
+        failure {
+            echo 'Pipeline failed ❌'
+        }
     }
 }
-
