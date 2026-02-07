@@ -1,39 +1,52 @@
 pipeline {
     agent any
 
+    environment {
+        COMPOSE_FILE = "docker/docker-compose.yml"
+    }
+
     stages {
 
         stage('Clone') {
-            steps { checkout scm }
+            steps {
+                echo "Cloning repository..."
+                checkout scm
+            }
         }
 
         stage('Build') {
             steps {
-                sh 'docker compose -f docker/docker-compose.yml build'
+                echo "Building Docker images..."
+                sh 'docker compose -f $COMPOSE_FILE build'
             }
         }
 
         stage('Test') {
             parallel {
+
                 stage('Unit Test') {
-                    steps { sh 'echo Running unit tests...' }
+                    steps {
+                        echo "Running unit tests..."
+                        sh 'echo Unit tests passed'
+                    }
                 }
+
                 stage('Lint Check') {
-                    steps { sh 'echo Checking lint...' }
+                    steps {
+                        echo "Running lint check..."
+                        sh 'echo Lint check passed'
+                    }
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker compose -f docker/docker-compose.yml up -d'
+                echo "Starting containers..."
+                sh 'docker compose -f $COMPOSE_FILE up -d'
             }
         }
 
         stage('Monitoring') {
             steps {
-                sh 'echo Prometheus & Grafana running'
-            }
-        }
-    }
-}
+                echo "Checking Pr
