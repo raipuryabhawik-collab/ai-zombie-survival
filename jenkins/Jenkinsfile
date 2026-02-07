@@ -17,7 +17,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building Docker images..."
-                sh 'docker compose -f $COMPOSE_FILE build'
+                sh "docker compose -f ${COMPOSE_FILE} build"
             }
         }
 
@@ -27,14 +27,14 @@ pipeline {
                 stage('Unit Test') {
                     steps {
                         echo "Running unit tests..."
-                        sh 'echo Unit tests passed'
+                        sh "echo Unit tests passed"
                     }
                 }
 
                 stage('Lint Check') {
                     steps {
                         echo "Running lint check..."
-                        sh 'echo Lint check passed'
+                        sh "echo Lint check passed"
                     }
                 }
             }
@@ -43,10 +43,42 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Starting containers..."
-                sh 'docker compose -f $COMPOSE_FILE up -d'
+                sh "docker compose -f ${COMPOSE_FILE} up -d"
             }
         }
 
         stage('Monitoring') {
             steps {
-                echo "Checking Pr
+                echo "Checking Prometheus and Grafana health..."
+
+                sh '''
+                # Check Prometheus
+                if curl -s http://localhost:9090/-/healthy > /dev/null; then
+                    echo "Prometheus is UP"
+                else
+                    echo "Prometheus is DOWN"
+                    exit 1
+                fi
+
+                # Check Grafana
+                if curl -s http://localhost:3000/api/health > /dev/null; then
+                    echo "Grafana is UP"
+                else
+                    echo "Grafana is DOWN"
+                    exit 1
+                fi
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline SUCCESS — Game deployed & Monitoring active 🚀"
+        }
+        failure {
+            echo "Pipeline FAILED — Check logs ❌"
+        }
+    }
+}
+
