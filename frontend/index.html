@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>AI Zombie Survival</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>👍 AI Zombie Survival</h2>
+<h1>🧟 AI Zombie Survival</h1>
 
-<canvas id="gameCanvas" width="900" height="500"></canvas>
+<button onclick="joinGame()">Join Game</button>
+<button onclick="killZombie()">Kill Zombie</button>
 
-<script src="ai.js"></script>
-<script src="game.js"></script>
+<h2>Active Players: <span id="players">0</span></h2>
+<h2>Zombies Killed: <span id="kills">0</span></h2>
 
+<script src="script.js"></script>
 </body>
 </html>
-
