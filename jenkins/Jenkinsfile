@@ -1,25 +1,23 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-
-        stage('Clone Repo') {
-            steps {
-                git branch: 'main', url: 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
-            }
-        }
-
-        stage('Build Docker') {
-            steps {
-                sh 'docker build -t zombie-frontend -f docker/Dockerfile.frontend .'
-                sh 'docker build -t zombie-backend -f docker/Dockerfile.backend .'
-            }
-        }
-
-        stage('Run Containers') {
-            steps {
-                sh 'cd docker && docker compose up -d'
-            }
-        }
+  stages {
+    stage('Clone') {
+      steps {
+        git branch: 'main', url: 'https://github.com/raipuryabhawik-collab/ai-zombie-survival.git'
+      }
     }
+
+    stage('Build') {
+      steps {
+        sh 'cd docker && docker compose build'
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh 'cd docker && docker compose up -d'
+      }
+    }
+  }
 }
