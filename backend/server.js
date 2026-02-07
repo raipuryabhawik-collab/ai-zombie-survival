@@ -4,43 +4,43 @@ const client = require("prom-client");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-
-let activePlayers = 0;
-let zombiesKilled = 0;
 
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
 
-const playersGauge = new client.Gauge({
-  name: "game_active_players",
-  help: "Current active players",
+const activePlayers = new client.Gauge({
+    name: "game_active_players",
+    help: "Active players in game"
 });
 
-const zombieCounter = new client.Counter({
-  name: "game_zombies_killed_total",
-  help: "Total zombies killed",
+const totalScore = new client.Gauge({
+    name: "game_total_score",
+    help: "Total game score"
 });
 
-register.registerMetric(playersGauge);
-register.registerMetric(zombieCounter);
-
-app.post("/join", (req, res) => {
-  activePlayers++;
-  playersGauge.set(activePlayers);
-  res.json({ players: activePlayers });
+const zombiesSpawned = new client.Gauge({
+    name: "game_zombies_spawned",
+    help: "Zombies spawned"
 });
 
-app.post("/kill", (req, res) => {
-  zombiesKilled++;
-  zombieCounter.inc();
-  res.json({ kills: zombiesKilled });
-});
+register.registerMetric(activePlayers);
+register.registerMetric(totalScore);
+register.registerMetric(zombiesSpawned);
 
 app.get("/metrics", async (req, res) => {
-  res.set("Content-Type", register.contentType);
-  res.end(await register.metrics());
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
 });
 
-app.listen(5000, () => console.log("Game running on port 5000"));
+app.get("/metrics/update", (req, res) => {
+    const players = parseInt(req.query.players || 0);
+    const score = parseInt(req.query.score || 0);
+    const zombies = parseInt(req.query.zombies || 0);
 
+    activePlayers.set(players);
+    totalScore.set(score);
+    zombiesSpawned.set(zombies);
+
+    res.send("Metrics updated");
+});
+
+app.listen(5000, () => console.log("Game Backend Running on 5000"));
