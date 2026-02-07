@@ -1,45 +1,26 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = "ai-zombie"
-    }
-
     stages {
 
         stage('Clone') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Build') {
             steps {
-                sh 'echo Building application...'
                 sh 'docker compose -f docker/docker-compose.yml build'
             }
         }
 
         stage('Test') {
             parallel {
-
                 stage('Unit Test') {
-                    steps {
-                        sh 'echo Running unit tests...'
-                    }
+                    steps { sh 'echo Running unit tests...' }
                 }
-
                 stage('Lint Check') {
-                    steps {
-                        sh 'echo Checking code lint...'
-                    }
+                    steps { sh 'echo Checking lint...' }
                 }
-            }
-        }
-
-        stage('Docker Image') {
-            steps {
-                sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
 
@@ -51,17 +32,8 @@ pipeline {
 
         stage('Monitoring') {
             steps {
-                sh 'echo Prometheus & Grafana running...'
+                sh 'echo Prometheus & Grafana running'
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline completed successfully ✅'
-        }
-        failure {
-            echo 'Pipeline failed ❌'
         }
     }
 }
