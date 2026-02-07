@@ -1,19 +1,14 @@
-version: "3"
-
 services:
-
   backend:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.backend
+      context: .
+      dockerfile: Dockerfile.backend
     ports:
       - "5000:5000"
-    container_name: docker-backend-1
 
   frontend:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.frontend
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - "8081:80"
-    container_name: docker-frontend-1
