@@ -9,75 +9,29 @@ pipeline {
 
         stage('Clone') {
             steps {
-                echo "Cloning repository..."
                 checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                echo "Building Docker images..."
                 sh "docker compose -f ${COMPOSE_FILE} build"
-            }
-        }
-
-        stage('Test') {
-            parallel {
-
-                stage('Unit Test') {
-                    steps {
-                        echo "Running unit tests..."
-                        sh "echo Unit tests passed"
-                    }
-                }
-
-                stage('Lint Check') {
-                    steps {
-                        echo "Running lint check..."
-                        sh "echo Lint check passed"
-                    }
-                }
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Starting containers..."
                 sh "docker compose -f ${COMPOSE_FILE} up -d"
             }
         }
 
         stage('Monitoring') {
             steps {
-                echo "Checking Prometheus and Grafana health..."
-
                 sh '''
-                # Check Prometheus
-                if curl -s http://localhost:9090/-/healthy > /dev/null; then
-                    echo "Prometheus is UP"
-                else
-                    echo "Prometheus is DOWN"
-                    exit 1
-                fi
-
-                # Check Grafana
-                if curl -s http://localhost:3000/api/health > /dev/null; then
-                    echo "Grafana is UP"
-                else
-                    echo "Grafana is DOWN"
-                    exit 1
-                fi
+                curl -s http://localhost:9090/-/healthy > /dev/null || exit 1
+                curl -s http://localhost:3000/api/health > /dev/null || exit 1
                 '''
             }
-        }
-    }
-
-    post {
-        success {
-            echo "Pipeline SUCCESS — Game deployed & Monitoring active 🚀"
-        }
-        failure {
-            echo "Pipeline FAILED — Check logs ❌"
         }
     }
 }
