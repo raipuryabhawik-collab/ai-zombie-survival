@@ -1,28 +1,17 @@
 pipeline {
     agent any
-
-    environment {
-        COMPOSE_FILE = "docker/docker-compose.yml"
-    }
+    environment { COMPOSE_FILE = "docker/docker-compose.yml" }
 
     stages {
 
-        stage('Clone') {
-            steps {
-                checkout scm
-            }
-        }
+        stage('Clone') { steps { checkout scm } }
 
         stage('Build') {
-            steps {
-                sh "docker compose -f ${COMPOSE_FILE} build"
-            }
+            steps { sh "docker compose -f ${COMPOSE_FILE} build" }
         }
 
         stage('Deploy') {
-            steps {
-                sh "docker compose -f ${COMPOSE_FILE} up -d"
-            }
+            steps { sh "docker compose -f ${COMPOSE_FILE} up -d" }
         }
 
         stage('Monitoring') {
