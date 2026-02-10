@@ -1,6 +1,9 @@
 global:
   scrape_interval: 5s
 
+rule_files:
+  - "alert.rules.yml"
+
 scrape_configs:
   - job_name: "backend"
     metrics_path: /metrics
@@ -10,4 +13,6 @@ scrape_configs:
   - job_name: "node"
     static_configs:
       - targets: ["node-exporter:9100"]
+
+
 

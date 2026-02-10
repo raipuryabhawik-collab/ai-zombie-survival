@@ -1,0 +1,12 @@
+groups:
+- name: backend-alerts
+  rules:
+  - alert: BackendDown
+    expr: up{job="backend"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Backend server is DOWN"
+      description: "Prometheus detected backend is not responding"
+

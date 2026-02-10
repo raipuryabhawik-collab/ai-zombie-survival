@@ -1,49 +1,77 @@
-const express = require('express');
-const client = require('prom-client');
+const express = require("express");
+const cors = require("cors");
+const http = require("http");
+const socketIO = require("socket.io");
+const client = require("prom-client");
+const mongoose = require("mongoose");
 
 const app = express();
-const PORT = 5000;
+app.use(cors());
+app.use(express.json());
 
-/* ---------------- Prometheus Metrics Setup ---------------- */
+/* ---------- MONGODB ---------- */
+mongoose.connect("mongodb://mongodb:27017/zombie", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
-// Collect default Node.js metrics (CPU, memory, event loop, etc.)
+const Score = mongoose.model("Score", {
+  name: String,
+  score: Number,
+  date: { type: Date, default: Date.now }
+});
+
+/* ---------- HEALTH ---------- */
+app.get("/health", (req, res) => res.send("OK"));
+
+/* ---------- METRICS ---------- */
 client.collectDefaultMetrics();
-
-// Custom HTTP request counter
-const httpRequestCounter = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status']
+const kills = new client.Counter({
+  name: "zombie_kills_total",
+  help: "Total zombie kills"
 });
 
-// Middleware to count requests
-app.use((req, res, next) => {
-  res.on('finish', () => {
-    httpRequestCounter.inc({
-      method: req.method,
-      route: req.path,
-      status: res.statusCode
-    });
-  });
-  next();
+app.get("/kill", (req, res) => {
+  kills.inc();
+  res.send("Kill added");
 });
 
-/* ---------------- Routes ---------------- */
-
-// Test route
-app.get('/', (req, res) => {
-  res.send('AI Zombie Backend Running 🚀');
-});
-
-// Prometheus metrics endpoint
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', client.register.contentType);
+app.get("/metrics", async (req, res) => {
+  res.set("Content-Type", client.register.contentType);
   res.end(await client.register.metrics());
 });
 
-/* ---------------- Start Server ---------------- */
-
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+/* ---------- LEADERBOARD (DB) ---------- */
+app.post("/score", async (req, res) => {
+  await Score.create(req.body);
+  res.send("Saved");
 });
+
+app.get("/leaderboard", async (req, res) => {
+  const top = await Score.find().sort({ score: -1 }).limit(10);
+  res.json(top);
+});
+
+/* ---------- MULTIPLAYER ---------- */
+const server = http.createServer(app);
+const io = socketIO(server, { cors: { origin: "*" } });
+
+let players = {};
+
+io.on("connection", socket => {
+  players[socket.id] = { x: 400, y: 300 };
+
+  socket.on("move", data => {
+    players[socket.id] = data;
+    io.emit("players", players);
+  });
+
+  socket.on("disconnect", () => {
+    delete players[socket.id];
+    io.emit("players", players);
+  });
+});
+
+/* ---------- START ---------- */
+server.listen(5000, () => console.log("Backend running on 5000"));
 
