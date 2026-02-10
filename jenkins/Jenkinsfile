@@ -15,62 +15,18 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Show Workspace Debug') {
             steps {
                 sh '''
-                docker build -t $BACKEND_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile.backend .
-                docker tag $BACKEND_IMAGE:${BUILD_NUMBER} $BACKEND_IMAGE:latest
+                echo "📂 Current Directory:"
+                pwd
+                echo "📂 Workspace Files:"
+                ls -l
+                echo "📂 k8s Folder:"
+                ls -l k8s || true
                 '''
             }
         }
 
-        stage('Build Frontend Image') {
-            steps {
-                sh '''
-                docker build -t $FRONTEND_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile.frontend .
-                docker tag $FRONTEND_IMAGE:${BUILD_NUMBER} $FRONTEND_IMAGE:latest
-                '''
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh '''
-                kubectl apply -f k8s/mongo.yaml -n $NAMESPACE
-                kubectl apply -f k8s/backend-deployment.yaml -n $NAMESPACE
-                kubectl apply -f k8s/frontend-deployment.yaml -n $NAMESPACE
-                kubectl apply -f k8s/service.yaml -n $NAMESPACE
-                kubectl apply -f k8s/ingress.yaml -n $NAMESPACE
-                '''
-            }
-        }
-
-        stage('Update Images (Rolling Deploy)') {
-            steps {
-                sh '''
-                kubectl set image deployment/backend backend=$BACKEND_IMAGE:${BUILD_NUMBER} -n $NAMESPACE
-                kubectl set image deployment/frontend frontend=$FRONTEND_IMAGE:${BUILD_NUMBER} -n $NAMESPACE
-                '''
-            }
-        }
-
-        stage('Verify Rollout') {
-            steps {
-                sh '''
-                kubectl rollout status deployment/backend -n $NAMESPACE
-                kubectl rollout status deployment/frontend -n $NAMESPACE
-                '''
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "🚀 Deployment Successful - Game Updated!"
-        }
-        failure {
-            echo "❌ Deployment Failed"
-        }
-    }
-}
+        stage('Build Backend I
 
